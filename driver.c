@@ -8,7 +8,7 @@ MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Ishmum Jawad Khan");
 MODULE_DESCRIPTION("Mimics the functionality of a character device");
 
-static char storage[1023];
+static char storage[255];
 static uint pointer;
 
 static dev_t device_number;
@@ -20,26 +20,26 @@ static struct cdev device;
 
 static ssize_t driver_read(struct file *File, char *user_buffer, size_t count, loff_t *offs) {
 	int to_copy = min(count, pointer);
-	int not_copied = copy_to_user(user_buffer, storage, to_copy);
-	int delta = to_copy - not_copied;
-	return delta;
+  printk("%s - copying %d bytes", DRIVER_NAME, to_copy);
+	return copy_to_user(user_buffer, storage, to_copy);
 }
 
 static ssize_t driver_write(struct file *File, const char *user_buffer, size_t count, loff_t *offs) {
 	uint to_copy = min(count, sizeof(storage));
 	uint not_copied = copy_to_user(storage, user_buffer, to_copy);
 	pointer = to_copy;
-	int delta = (int) to_copy - not_copied;
-	return delta;
+	printk("%s - %d bytes were written; %d bytes remain!", DRIVER_NAME, not_copied);
+  printk("%s - storage: %s", DRIVER_NAME, storage);
+  return not_copied;
 }
 
 static int driver_open(struct inode *device_file, struct file *instance) {
-	printk("driver - open was called!\n");
+	printk("%s - open was called!\n", DRIVER_NAME);
 	return 0;
 }
 
 static int driver_close(struct inode *device_file, struct file *instance) {
-	printk("driver - close was called!\n");
+	printk("%s - close was called!\n", DRIVER_NAME);
 	return 0;
 }
 
